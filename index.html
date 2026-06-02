@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fake News Detection</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            margin-top: 100px;
+        }
+
+        textarea {
+            width: 60%;
+            height: 120px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: lightgray;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .top-bar a {
+            margin-left: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="top-bar">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="container">
+    <h1>📰 Fake News Detector</h1>
+
+    <form action="/predict" method="POST">
+        <textarea name="news" placeholder="Enter news text..." required></textarea><br>
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction_text %}
+    <div class="result">
+        Result: {{ prediction_text }}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FakeShield — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg: #050810;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --neon: #00e5ff;
+    --gold: #f59e0b;
+    --neon2: #7c3aed;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --real: #10b981;
+    --fake: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+    background-size: 40px 40px; z-index: 0; pointer-events: none;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 260px; min-height: 100vh;
+    background: linear-gradient(180deg, #0a0f1e 0%, #080c18 100%);
+    border-right: 1px solid var(--border);
+    padding: 30px 20px;
+    position: fixed; top: 0; left: 0;
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 8px; }
+  .sidebar-brand .icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--gold), #f97316);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    box-shadow: 0 0 20px rgba(245,158,11,0.35);
+  }
+  .sidebar-brand h2 {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 0 12px; margin-bottom: 10px; margin-top: 10px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none; color: rgba(255,255,255,0.6);
+    padding: 11px 14px; border-radius: 12px;
+    margin-bottom: 4px; font-size: 15px; font-weight: 500;
+    transition: all 0.2s; position: relative;
+  }
+  .nav-link:hover { background: rgba(245,158,11,0.08); color: #fff; }
+  .nav-link.active { background: rgba(245,158,11,0.1); color: #fff; }
+  .nav-link.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 20px; background: var(--gold); border-radius: 2px;
+  }
+  .nav-link .ico { font-size: 18px; width: 22px; text-align: center; }
+  .sidebar-bottom { margin-top: auto; }
+  .admin-badge {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 12px; margin-bottom: 8px;
+  }
+  .admin-badge .icon2 {
+    width: 32px; height: 32px; background: linear-gradient(135deg, var(--gold), #f97316);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .admin-badge .name { font-size: 14px; font-weight: 600; color: var(--gold); }
+  .admin-badge .role { font-size: 11px; color: rgba(245,158,11,0.6); }
+
+  /* MAIN */
+  .main { margin-left: 260px; flex: 1; padding: 36px; position: relative; z-index: 1; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+  .page-header h1 { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; color: #fff; }
+  .page-header .admin-crown {
+    background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ADD USER */
+  .add-user-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .add-user-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), #f97316, transparent);
+  }
+  .add-user-card h3 {
+    font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
+    margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 8px;
+  }
+  .form-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+  .form-field { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 180px; }
+  .form-field label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500;
+  }
+  .form-field input {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-field input::placeholder { color: rgba(255,255,255,0.2); }
+  .form-field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+  .btn-add {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--gold), #f97316);
+    border: none; border-radius: 12px; color: #050810;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(245,158,11,0.35);
+    white-space: nowrap;
+  }
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(245,158,11,0.5); }
+
+  /* TABLE */
+  .table-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px; margin-bottom: 24px;
+  }
+  .table-card h3 {
+    font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
+    margin-bottom: 20px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-card h3 .count {
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400;
+    color: var(--muted);
+  }
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl thead th {
+    text-align: left; padding: 10px 16px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  .tbl tbody td { padding: 15px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; }
+  .tbl tbody tr:last-child td { border-bottom: none; }
+  .tbl tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .id-badge {
+    background: rgba(255,255,255,0.06); padding: 4px 10px;
+    border-radius: 6px; font-size: 13px; font-family: monospace; color: var(--muted);
+  }
+  .user-name { display: flex; align-items: center; gap: 10px; }
+  .mini-avatar {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--neon2), #a855f7);
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+  }
+  .admin-user .mini-avatar { background: linear-gradient(135deg, var(--gold), #f97316); }
+  .admin-tag {
+    background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+    color: var(--gold); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .btn-delete {
+    padding: 7px 16px;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+    color: #ef4444; border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .btn-delete:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); transform: scale(1.03); }
+
+  /* ANALYTICS */
+  .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .analytics-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+  }
+  .analytics-card h3 {
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+    margin-bottom: 20px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .analytics-card h3 .tag {
+    font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 400;
+    background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 20px; color: var(--muted);
+  }
+  .chart-wrap { height: 220px; }
+  .stat-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pill {
+    padding: 16px; border-radius: 14px; text-align: center;
+  }
+  .pill.real { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
+  .pill.fake { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+  .pill .val { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; }
+  .pill.real .val { color: var(--real); }
+  .pill.fake .val { color: var(--fake); }
+  .pill .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .pill .pct { font-size: 18px; font-weight: 700; margin-top: 4px; }
+  .pill.real .pct { color: var(--real); }
+  .pill.fake .pct { color: var(--fake); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="icon">👑</div>
+    <h2>Admin Hub</h2>
+  </div>
+
+  <div class="nav-section">Navigation</div>
+  <a href="/dashboard" class="nav-link">
+    <span class="ico">📊</span> Dashboard
+  </a>
+  <a href="/admin" class="nav-link active">
+    <span class="ico">👑</span> Admin Panel
+  </a>
+
+  <div class="nav-section" style="margin-top:20px;">Account</div>
+  <a href="/logout" class="nav-link">
+    <span class="ico">🚪</span> Sign Out
+  </a>
+
+  <div class="sidebar-bottom">
+    <div class="admin-badge">
+      <div class="icon2">👑</div>
+      <div>
+        <div class="name">Administrator</div>
+        <div class="role">Full Access</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <h1>👑 Admin Panel</h1>
+    <div class="admin-crown">👑 Admin Access</div>
+  </div>
+
+  <!-- ADD USER -->
+  <div class="add-user-card">
+    <h3>➕ Add New User</h3>
+    <form action="/add_user" method="POST">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="Enter username" required>
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Enter password" required>
+        </div>
+        <button class="btn-add" type="submit">+ Create User</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- USERS TABLE -->
+  <div class="table-card">
+    <h3>All Users <span class="count">{{ users|length }} registered</span></h3>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr class="{% if user[1] == 'admin' %}admin-user{% endif %}">
+          <td><span class="id-badge">#{{ user[0] }}</span></td>
+          <td>
+            <div class="user-name">
+              <div class="mini-avatar">{{ user[1][0].upper() }}</div>
+              {{ user[1] }}
+            </div>
+          </td>
+          <td>
+            {% if user[1] == 'admin' %}
+            <span class="admin-tag">👑 Admin</span>
+            {% else %}
+            <span style="color:var(--muted);font-size:13px;">Member</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if user[1] != 'admin' %}
+            <a href="/delete_user/{{ user[0] }}" class="btn-delete">🗑 Delete</a>
+            {% else %}
+            <span style="color:var(--muted);font-size:13px;">Protected</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="analytics-grid">
+    <div class="analytics-card">
+      <h3>Predictions <span class="tag">Bar Chart</span></h3>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="analytics-card">
+      <h3>Breakdown <span class="tag">Stats</span></h3>
+      <div style="margin-bottom:16px;">
+        <canvas id="donutChart" height="140"></canvas>
+      </div>
+      <div class="stat-pills">
+        <div class="pill real">
+          <div class="val">{{ real }}</div>
+          <div class="lbl">Real</div>
+          <div class="pct">{% if real + fake > 0 %}{{ ((real / (real + fake)) * 100)|round(0)|int }}%{% else %}—{% endif %}</div>
+        </div>
+        <div class="pill fake">
+          <div class="val">{{ fake }}</div>
+          <div class="lbl">Fake</div>
+          <div class="pct">{% if real + fake > 0 %}{{ ((fake / (real + fake)) * 100)|round(0)|int }}%{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const real = {{ real }};
+const fake = {{ fake }};
+
+Chart.defaults.color = '#9ca3af';
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Real News', 'Fake News'],
+    datasets: [{
+      label: 'Total',
+      data: [real, fake],
+      backgroundColor: ['rgba(16,185,129,0.7)', 'rgba(239,68,68,0.7)'],
+      borderColor: ['#10b981', '#ef4444'],
+      borderWidth: 2, borderRadius: 10,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9ca3af', font: { family: 'DM Sans' } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9ca3af', font: { family: 'DM Sans' } }, beginAtZero: true }
+    }
+  }
+});
+
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Real', 'Fake'],
+    datasets: [{ data: [real, fake], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0, hoverOffset: 6 }]
+  },
+  options: {
+    responsive: true, cutout: '72%',
+    plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16, font: { family: 'DM Sans', size: 12 } } } }
+  }
+});
+</script>
+
+</body>
+</html>
